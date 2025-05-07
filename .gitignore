@@ -1,0 +1,16 @@
+# Python virtual env
+.venv/
+
+# dotenv creds
+.env
+
+# Local data and outputs
+output/
+data/
+
+# VS Code settings
+.vscode/
+
+# Byte-compiled / caches
+__pycache__/
+*.py[cod]
