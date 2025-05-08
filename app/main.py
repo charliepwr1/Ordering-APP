@@ -28,7 +28,9 @@ st.markdown("""
 ## Alberta Cannabis Order Generator
 
 This app downloads the AGLC order form template and automatically populates it with current inventory data.
-For each location, a separate sheet will be created with the complete order form.
+For each location, a separate sheet will be created with the complete order form in a standardized format.
+
+The Excel output will include all necessary columns organized in the optimal order for analysis and order planning.
 """)
 
 col1, col2, col3 = st.columns(3)
@@ -993,10 +995,115 @@ if st.button("Run ETL & Prepare Compiled Order Form"):
                                         location_merged['Cases Needed'] = location_merged['Units Needed'].round(1)
                                         location_merged['Order Qty'] = location_merged['Cases Needed']
                         
-                        # Write directly with all calculation columns
-                        final_location_df = location_merged
+                        # Define the specific columns to include and their order
+                        desired_columns = [
+                            "AGLC SKU",
+                            "Format",
+                            "Subcategory",
+                            "Type_(Sub 2 Category)",
+                            "Brand Name",
+                            "SKU DESCRIPTION",
+                            "Available Cases",
+                            "EachesPerCase",
+                            "QUANTITY",
+                            "Cases Needed",
+                            "Sales per Day",
+                            "In Stock Qty",
+                            "On Order Qty",
+                            "Week Net Sold",
+                            "2d Net Sold",
+                            "DCE (g)",
+                            "Sell Price Per Unit",
+                            "THC MIN",
+                            "THC MAX",
+                            "CBD MIN",
+                            "CBD MAX",
+                            "Total Days in Stock",
+                            "New SKU This Week",
+                            "On Sale",
+                            "Merchandising Strategy",
+                            "Strain_(Sub 3 Category)",
+                            "In Stock Cost",
+                            "Company Name",
+                            "Avg Unit Cost In Stock",
+                            "Regular Price",
+                            "Retail Value In Stock",
+                            "Profit Margin ($)",
+                            "Profit Margin (%)",
+                            "Markup",
+                            "First Received Date",
+                            "Last Received Date",
+                            "Days Since Last Sold",
+                            "Brand",
+                            "Manufacturer",
+                            "Week Avg Price",
+                            "Week Total Cost",
+                            "2d Avg Price",
+                            "2d Total Cost",
+                            "Total In Stock Qty",
+                            "Last In Stock Date",
+                            "Avg Days In Stock Per Cycle",
+                            "Stock Variability",
+                            "Stockout Frequency",
+                            "Order Qty",
+                            "Projected Need",
+                            "Current Inventory",
+                            "Units Needed"
+                        ]
                         
-                        # Write to sheet
+                        # Create a mapping of possible column names to standardized names
+                        column_mappings = {
+                            # SKU mappings
+                            "SKU": "AGLC SKU",
+                            "Product SKU": "AGLC SKU", 
+                            "AGLC Product ID": "AGLC SKU",
+                            "Product ID": "AGLC SKU",
+                            
+                            # Description mappings
+                            "Description": "SKU DESCRIPTION",
+                            "Product Description": "SKU DESCRIPTION",
+                            "Product Name": "SKU DESCRIPTION",
+                            "Name": "SKU DESCRIPTION",
+                            
+                            # Standardize various column names
+                            "Brand": "Brand Name",
+                            "Supplier": "Company Name",
+                            "Supplier Name": "Company Name",
+                            "UPC": "EachesPerCase",
+                            "Case Size": "EachesPerCase",
+                            "Units Per Case": "EachesPerCase",
+                            "Category": "Format",
+                            "Product Type": "Format",
+                            "Format Type": "Format",
+                            "Product Format": "Format",
+                            "Strain": "Strain_(Sub 3 Category)",
+                            "Strain Name": "Strain_(Sub 3 Category)",
+                            "Sub Category": "Subcategory",
+                            "Sub-Category": "Subcategory",
+                            "Product Category": "Subcategory"
+                        }
+                        
+                        # Standardize column names in the merged dataframe
+                        final_location_df = location_merged.copy()
+                        for orig_col, std_col in column_mappings.items():
+                            if orig_col in final_location_df.columns and std_col not in final_location_df.columns:
+                                final_location_df[std_col] = final_location_df[orig_col]
+                        
+                        # Filter to only include desired columns that exist in the dataframe
+                        # but keep any missing columns as empty placeholders
+                        output_columns = []
+                        for col in desired_columns:
+                            if col in final_location_df.columns:
+                                output_columns.append(col)
+                            else:
+                                # Add missing column as empty placeholder
+                                final_location_df[col] = ""
+                                output_columns.append(col)
+                        
+                        # Reorder columns to match the desired order
+                        final_location_df = final_location_df[output_columns]
+                        
+                        # Write to sheet with the specified columns in the desired order
                         final_location_df.to_excel(writer, sheet_name=sheet_name, index=False)
                         
                         # Report success with stats
@@ -1058,8 +1165,115 @@ if st.button("Run ETL & Prepare Compiled Order Form"):
                         # Just keep as is if conversion fails
                         pass
             
-            # Write the combined data with all columns
-            merged.to_excel(writer, sheet_name=combined_sheet, index=False)
+            # Define the specific columns to include and their order for the combined sheet
+            desired_columns = [
+                "AGLC SKU",
+                "Format",
+                "Subcategory",
+                "Type_(Sub 2 Category)",
+                "Brand Name",
+                "SKU DESCRIPTION",
+                "Available Cases",
+                "EachesPerCase",
+                "QUANTITY",
+                "Cases Needed",
+                "Sales per Day",
+                "In Stock Qty",
+                "On Order Qty",
+                "Week Net Sold",
+                "2d Net Sold",
+                "DCE (g)",
+                "Sell Price Per Unit",
+                "THC MIN",
+                "THC MAX",
+                "CBD MIN",
+                "CBD MAX",
+                "Total Days in Stock",
+                "New SKU This Week",
+                "On Sale",
+                "Merchandising Strategy",
+                "Strain_(Sub 3 Category)",
+                "In Stock Cost",
+                "Company Name",
+                "Avg Unit Cost In Stock",
+                "Regular Price",
+                "Retail Value In Stock",
+                "Profit Margin ($)",
+                "Profit Margin (%)",
+                "Markup",
+                "First Received Date",
+                "Last Received Date",
+                "Days Since Last Sold",
+                "Brand",
+                "Manufacturer",
+                "Week Avg Price",
+                "Week Total Cost",
+                "2d Avg Price",
+                "2d Total Cost",
+                "Total In Stock Qty",
+                "Last In Stock Date",
+                "Avg Days In Stock Per Cycle",
+                "Stock Variability",
+                "Stockout Frequency",
+                "Order Qty",
+                "Projected Need",
+                "Current Inventory",
+                "Units Needed",
+                "Location"  # Keep location column for the combined sheet
+            ]
+            
+            # Column mappings (same as for individual location sheets)
+            column_mappings = {
+                # SKU mappings
+                "SKU": "AGLC SKU",
+                "Product SKU": "AGLC SKU", 
+                "AGLC Product ID": "AGLC SKU",
+                "Product ID": "AGLC SKU",
+                
+                # Description mappings
+                "Description": "SKU DESCRIPTION",
+                "Product Description": "SKU DESCRIPTION",
+                "Product Name": "SKU DESCRIPTION",
+                "Name": "SKU DESCRIPTION",
+                
+                # Standardize various column names
+                "Brand": "Brand Name",
+                "Supplier": "Company Name",
+                "Supplier Name": "Company Name",
+                "UPC": "EachesPerCase",
+                "Case Size": "EachesPerCase",
+                "Units Per Case": "EachesPerCase",
+                "Category": "Format",
+                "Product Type": "Format",
+                "Format Type": "Format",
+                "Product Format": "Format",
+                "Strain": "Strain_(Sub 3 Category)",
+                "Strain Name": "Strain_(Sub 3 Category)",
+                "Sub Category": "Subcategory",
+                "Sub-Category": "Subcategory",
+                "Product Category": "Subcategory"
+            }
+            
+            # Standardize column names
+            for orig_col, std_col in column_mappings.items():
+                if orig_col in merged.columns and std_col not in merged.columns:
+                    merged[std_col] = merged[orig_col]
+            
+            # Filter to only include desired columns that exist
+            output_columns = []
+            for col in desired_columns:
+                if col in merged.columns:
+                    output_columns.append(col)
+                else:
+                    # Add missing column as empty placeholder
+                    merged[col] = ""
+                    output_columns.append(col)
+            
+            # Reorder columns to match the desired order
+            final_merged = merged[output_columns]
+            
+            # Write the combined data with the specified columns in the desired order
+            final_merged.to_excel(writer, sheet_name=combined_sheet, index=False)
             st.info(f"Created combined data in sheet: '{combined_sheet}' with {len(merged.columns)} columns")
             
         else:
@@ -1110,8 +1324,114 @@ if st.button("Run ETL & Prepare Compiled Order Form"):
                         # Just keep as is if conversion fails
                         pass
             
-            # Write the data with all columns
-            merged.to_excel(writer, sheet_name=sheet_name, index=False)
+            # Define the specific columns to include and their order for the no-location case
+            desired_columns = [
+                "AGLC SKU",
+                "Format",
+                "Subcategory",
+                "Type_(Sub 2 Category)",
+                "Brand Name",
+                "SKU DESCRIPTION",
+                "Available Cases",
+                "EachesPerCase",
+                "QUANTITY",
+                "Cases Needed",
+                "Sales per Day",
+                "In Stock Qty",
+                "On Order Qty",
+                "Week Net Sold",
+                "2d Net Sold",
+                "DCE (g)",
+                "Sell Price Per Unit",
+                "THC MIN",
+                "THC MAX",
+                "CBD MIN",
+                "CBD MAX",
+                "Total Days in Stock",
+                "New SKU This Week",
+                "On Sale",
+                "Merchandising Strategy",
+                "Strain_(Sub 3 Category)",
+                "In Stock Cost",
+                "Company Name",
+                "Avg Unit Cost In Stock",
+                "Regular Price",
+                "Retail Value In Stock",
+                "Profit Margin ($)",
+                "Profit Margin (%)",
+                "Markup",
+                "First Received Date",
+                "Last Received Date",
+                "Days Since Last Sold",
+                "Brand",
+                "Manufacturer",
+                "Week Avg Price",
+                "Week Total Cost",
+                "2d Avg Price",
+                "2d Total Cost",
+                "Total In Stock Qty",
+                "Last In Stock Date",
+                "Avg Days In Stock Per Cycle",
+                "Stock Variability",
+                "Stockout Frequency",
+                "Order Qty",
+                "Projected Need",
+                "Current Inventory",
+                "Units Needed"
+            ]
+            
+            # Column mappings (same as for the other sheets)
+            column_mappings = {
+                # SKU mappings
+                "SKU": "AGLC SKU",
+                "Product SKU": "AGLC SKU", 
+                "AGLC Product ID": "AGLC SKU",
+                "Product ID": "AGLC SKU",
+                
+                # Description mappings
+                "Description": "SKU DESCRIPTION",
+                "Product Description": "SKU DESCRIPTION",
+                "Product Name": "SKU DESCRIPTION",
+                "Name": "SKU DESCRIPTION",
+                
+                # Standardize various column names
+                "Brand": "Brand Name",
+                "Supplier": "Company Name",
+                "Supplier Name": "Company Name",
+                "UPC": "EachesPerCase",
+                "Case Size": "EachesPerCase",
+                "Units Per Case": "EachesPerCase",
+                "Category": "Format",
+                "Product Type": "Format",
+                "Format Type": "Format",
+                "Product Format": "Format",
+                "Strain": "Strain_(Sub 3 Category)",
+                "Strain Name": "Strain_(Sub 3 Category)",
+                "Sub Category": "Subcategory",
+                "Sub-Category": "Subcategory",
+                "Product Category": "Subcategory"
+            }
+            
+            # Standardize column names
+            for orig_col, std_col in column_mappings.items():
+                if orig_col in merged.columns and std_col not in merged.columns:
+                    merged[std_col] = merged[orig_col]
+            
+            # Filter to only include desired columns that exist
+            output_columns = []
+            for col in desired_columns:
+                if col in merged.columns:
+                    output_columns.append(col)
+                else:
+                    # Add missing column as empty placeholder
+                    merged[col] = ""
+                    output_columns.append(col)
+            
+            # Reorder columns to match the desired order
+            final_merged = merged[output_columns]
+            
+            # Write the data with the specified columns in the desired order
+            final_merged.to_excel(writer, sheet_name=sheet_name, index=False)
             st.info(f"Created data in sheet: '{sheet_name}' with {len(merged.columns)} columns (no location data found)")
         
         # Add a debug info sheet
