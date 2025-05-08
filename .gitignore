@@ -15,4 +15,17 @@ data/
 __pycache__/
 *.py[cod]
 
+# Excel files
+*.xlsx
+*.xlsm
+*.xls
+
+# Response data
+*.raw
+*.json
+download_response.txt
+download_response_headers.json
+download_headers.txt
+login_response.json
+
 **/.claude/settings.local.json
