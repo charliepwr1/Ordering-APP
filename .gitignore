@@ -14,3 +14,5 @@ data/
 # Byte-compiled / caches
 __pycache__/
 *.py[cod]
+
+**/.claude/settings.local.json
